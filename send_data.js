@@ -3,23 +3,23 @@
 
 'use strict';
 
-var fs = require('fs');
-
 var clientFromConnectionString = require('azure-iot-device-http').clientFromConnectionString;
 var Device = require('azure-iot-device');
 var Message = Device.Message;
 var Http = require('azure-iot-device-http').Http;
 var connectionString = 
-"HostName=toradex.azure-devices.net;DeviceId=tdx_iot_car;SharedAccessKey=dCjIzGnMdjZMDC5YJF8Gtch+ZVQCLXWMb7P0f1achDM=";
+//"HostName=toradex.azure-devices.net;DeviceId=tdx_iot_car;SharedAccessKey=dCjIzGnMdjZMDC5YJF8Gtch+ZVQCLXWMb7P0f1achDM=";
+"HostName=toradex.azure-devices.net;DeviceId=mydevice;SharedAccessKey=cVmo7JbTf9BgpZ005noBN3yebFBPMHQMMv7n81iMGgo=";
 //Create client to connect to the IoT Hub as tdx_iot_car
 var client = clientFromConnectionString(connectionString);
 
+//some offset and scale variables as if using the sensor MPU-6050
 var temp_offset = 12421;
 var temp_scale = 0.002941;
 var accel_scale = 0.000598;
 var anglvel_scale = 0.001064724;
 
-// Create a message and send it to the IoT hub every second
+//Create a message and send it to the IoT hub periodically
 setInterval(function () {
   var d = new Date();
   var timenow = d.getTime();//get board time                                                                                  
@@ -66,4 +66,3 @@ function printResultFor(op) {
     }
   };
 }
-
