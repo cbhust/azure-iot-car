@@ -9,9 +9,7 @@ var Device = require('azure-iot-device');
 var Message = Device.Message;
 
 // Create client to connect to the IoT Hub using the device connection string and the HTTP protocol
-var connectionString = 
-//"HostName=toradex.azure-devices.net;DeviceId=tdx_iot_car;SharedAccessKey=dCjIzGnMdjZMDC5YJF8Gtch+ZVQCLXWMb7P0f1achDM=";
-"HostName=toradex.azure-devices.net;DeviceId=mydevice;SharedAccessKey=cVmo7JbTf9BgpZ005noBN3yebFBPMHQMMv7n81iMGgo=";
+var connectionString = "HostName=yourHostName.azure-devices.net;DeviceId=yourDevice;SharedAccessKey=yourSharedAccessKey";
 //Create client to connect to the IoT Hub as tdx_iot_car
 var client = clientFromConnectionString(connectionString);
 var sendInterval = {timer: 1000};//loop handler
