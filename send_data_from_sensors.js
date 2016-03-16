@@ -29,7 +29,7 @@ bancroft.on('location', function (location) {//updates the gps coordinates varia
 	gps_coordinates = location;
 	console.log('got new location', gps_coordinates);
 });
-var disconnect = bancroft.on('disconnect', function (err) {//if gps is disconnected
+bancroft.on('disconnect', function (err) {//if gps is disconnected
 	bancroft = new Bancroft();//tries to reconnect once
 	console.log('trying to reconnect gps...');
 });
