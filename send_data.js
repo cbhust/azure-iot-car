@@ -3,15 +3,15 @@
 
 'use strict';
 
-// Required modules and functions
-var clientFromConnectionString = require('azure-iot-device-http').clientFromConnectionString;
-var Device = require('azure-iot-device');
-var Message = Device.Message;
+//Required modules and functions
+var Protocol = require('azure-iot-device-http').Http;// The transport protocol used
+var Client = require('azure-iot-device').Client;
+var Message = require('azure-iot-device').Message;
 
 // Create client to connect to the IoT Hub using the device connection string and the HTTP protocol
 var connectionString = "HostName=yourHostName.azure-devices.net;DeviceId=yourDevice;SharedAccessKey=yourSharedAccessKey";
 //Create client to connect to the IoT Hub as tdx_iot_car
-var client = clientFromConnectionString(connectionString);
+var client = Client.fromConnectionString(connectionString, Protocol);
 var sendInterval = {timer: 1000};//loop handler
 
 // some offset and scale constants as if using the sensor MPU-6050
