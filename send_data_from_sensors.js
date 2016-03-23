@@ -46,7 +46,7 @@ function readSensor(path, callback) {
 		if(err){//if data could not be read
 			console.log("Error reading sensor: " + err);
 			callback(err, null);//pass the error to the callback
-			return;//the ready flag is not set so data cannot be sent to the cloud
+			return;
 		}
 		callback(null, data);//callback without error
 	});
