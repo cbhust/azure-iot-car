@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "azure-iot-device": "1.0.1",
-    "azure-iot-device-http": "1.0.1"
+    "azure-iot-device-http": "1.0.1",
     "bancroft": "0.0.12"
   },
   "devDependencies": {

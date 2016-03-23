@@ -14,14 +14,16 @@ var fs = require('fs');
 // Create client to connect to the IoT Hub using the device connection string and the HTTP protocol
 var connectionString = "HostName=yourHostName.azure-devices.net;DeviceId=yourDevice;SharedAccessKey=yourSharedAccessKey";
 var client = Client.fromConnectionString(connectionString, Protocol);
-var sendInterval = {timer: 1000};//loop handler
+var sendInterval = {timerGet: 1000, timerSend: 1000};//loop handler
 
-// Read some offset and scale constants from the MPU-6050 and convert to number
+//Read some offset and scale constants from the MPU-6050 and convert to number
 var temp_offset = +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_temp_offset');
 var temp_scale = +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_temp_scale');
 var accel_scale = +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_accel_scale');
 var anglvel_scale = +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_anglvel_scale');
 var gps_coordinates ;//variable to hold the gps coordinates
+// Data to be sent
+var timenow, temperature, Distance, Acceleration = {}, Gyroscope = {};
 
 // gps events
 bancroft.on('location', function (location) {//updates the gps coordinates variable
@@ -34,21 +36,55 @@ bancroft.on('disconnect', function (err) {//if gps is disconnected
 	console.log('trying to reconnect gps...');
 });
 
-// Create a message and send it to the IoT hub every second
-sendInterval.handler = setInterval(function () {
-	// Read/get the data to be sent to the IoT Hub
+// Loops that call the functions to read sensors and send to the cloud
+sendInterval.handlerGet = setInterval(getAllSensors, sendInterval.timerGet);
+sendInterval.handlerSend = setInterval(sendToIotHub, sendInterval.timerSend);
+
+//Function that reads data from sensor
+function readSensor(path, callback) {
+	fs.readFile(path, function (err, data) {
+		if(err){//if data could not be read
+			console.log("Error reading sensor: " + err);
+			callback(err, null);//pass the error to the callback
+			return;//the ready flag is not set so data cannot be sent to the cloud
+		}
+		callback(null, data);//callback without error
+	});
+}
+
+//Function that reads all sensors data
+function getAllSensors() {
 	var d = new Date();
-	var timenow = d.getTime();// get board time (in Epoch time)
-	var temp_raw = fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_temp_raw');
-	var temperature = (+temp_raw+temp_offset)*temp_scale;
-	var Distance = fs.readFileSync('/sys/class/hcsr04/value')*340/2000000;
-	var Acceleration = {	accel_x: +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_accel_x_raw')*accel_scale,
-							accel_y: +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_accel_y_raw')*accel_scale,
-							accel_z: +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_accel_z_raw')*accel_scale,};
-	var Gyroscope = {	gyro_x: +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_anglvel_x_raw')*anglvel_scale,
-						gyro_y: +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_anglvel_y_raw')*anglvel_scale,
-						gyro_z: +fs.readFileSync('/sys/bus/iio/devices/iio:device2/in_anglvel_z_raw')*anglvel_scale,};
-	
+	timenow = d.getTime();// get board time (in Epoch time)
+	readSensor('/sys/class/hcsr04/value', function(err,data){
+		if(data != -1){//check if sensor reading was successful
+			Distance = data*340/2000000;//Get distance reading
+		}
+	});
+	readSensor('/sys/bus/iio/devices/iio:device2/in_temp_raw', function(err,data){
+		temperature = (+data+temp_offset)*temp_scale;//Get temperature reading
+	});
+	readSensor('/sys/bus/iio/devices/iio:device2/in_accel_x_raw', function(err,data){
+		Acceleration.accel_x = data*accel_scale;//Get x axis acceleration
+	});
+	readSensor('/sys/bus/iio/devices/iio:device2/in_accel_y_raw', function(err,data){
+		Acceleration.accel_y = data*accel_scale;//Get y axis acceleration
+	});
+	readSensor('/sys/bus/iio/devices/iio:device2/in_accel_z_raw', function(err,data){
+		Acceleration.accel_z = data*accel_scale;//Get z axis acceleration
+	});
+	readSensor('/sys/bus/iio/devices/iio:device2/in_anglvel_x_raw', function(err,data){
+		Gyroscope.gyro_y = data*anglvel_scale;//Get x axis gyro
+	});
+	readSensor('/sys/bus/iio/devices/iio:device2/in_anglvel_y_raw', function(err,data){
+		Gyroscope.gyro_z = data*anglvel_scale;//Get y axis gyro
+	});
+	readSensor('/sys/bus/iio/devices/iio:device2/in_anglvel_z_raw', function(err,data){
+		Gyroscope.gyro_z = data*anglvel_scale;//Get z axis gyro
+	});
+}
+
+function sendToIotHub() {
 	// Add the data to a JSON encoded string
 	var data = JSON.stringify({
 		ObjectName: 'toradex2',
@@ -63,9 +99,10 @@ sendInterval.handler = setInterval(function () {
 
 	var message = new Message(data);// Encapsulate the message to be sent
 	message.properties.add('myproperty', 'myvalue');
-	console.log('sending message to the IoT Hub');// Feedback message to the console
+	console.log('sending message to the IoT Hub: ');// Feedback message to the console
+	console.log(data);
 	client.sendEvent(message, printResultFor('send'));// Send message to the IoT Hub
-}, sendInterval.timer);
+}
 
 //Helper function to print results in the console
 function printResultFor(op) {
