@@ -9,7 +9,7 @@ var Client = require('azure-iot-device').Client;
 var Message = require('azure-iot-device').Message;
 
 // Create client to connect to the IoT Hub using the device connection string and the HTTP protocol
-var connectionString = "HostName=yourHostName.azure-devices.net;DeviceId=yourDevice;SharedAccessKey=yourSharedAccessKey";
+var connectionString = "HostName=wttest.mqtt.iot.gz.baiduce.com;DeviceId=wttest/dev/wh;SharedAccessKey=2uSVWiLeQp4oiiNDM9MbC5CyyoBrlQQfm6bA9axcLx0=";
 //Create client to connect to the IoT Hub as tdx_iot_car
 var client = Client.fromConnectionString(connectionString, Protocol);
 var sendInterval = {timer: 1000};//loop handler
@@ -40,7 +40,7 @@ sendInterval.handler = setInterval(function () {
 
   // Add the fake data into a JSON encoded string                                                                                                               
   var data = JSON.stringify({                                                                                         
-    ObjectName: 'tdx_iot_car',                                                                                           
+    ObjectName: 'sensor1',                                                                                           
     ObjectType: 'telemetry_data',                                                                                     
     temp: temperature,                                                                                                
     acceleration: Acceleration,                                                                                       
